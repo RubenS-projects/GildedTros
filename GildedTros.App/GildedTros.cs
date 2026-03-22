@@ -22,89 +22,59 @@ namespace GildedTros.App
 
         private static void UpdateItemQuality(Item item)
         {
-            UpdateQualityDaily(item);
+            // Legendary items do not change in quality or sell-in date, since they never have to be sold
+            // skipping the rest of the logic for legendary items
+            if (IsLegendary(item)) return;
 
+            bool isExpired = item.SellIn <= 0;
+
+            UpdateQuality(item, isExpired);
             UpdateSellIn(item);
-
-            if (item.SellIn >= 0) return;
-            //start expiration Logic
-
-            HandleExpiredItems(item);
         }
 
-        private static void UpdateQualityDaily(Item item)
+        private static void UpdateQuality(Item item, bool isExpired)
         {
-            // Normal items decrease in quality
-            if (IsLegendary(item))
-            {
-                // Legendary items do not change in quality
-                return;
-            }
-
-            if (IsGoodWine(item) || IsBackstagePass(item))
-            {
-                // "Good Wine" and "Backstage Passes" increase in quality
-                if (item.Quality < 50)
-                {
-                    item.Quality += 1;
-                    // "Backstage Passes" increase in quality as the sell-in date approaches
-
-                    if (IsBackstagePass(item))
-                    {
-                        if (item.SellIn < 11)
-                        {
-                            IncreaseQuality(item);
-                        }
-
-                        if (item.SellIn < 6)
-                        {
-                            IncreaseQuality(item);
-                        }
-                    }
-                }
-                return;
-            }
-            DecreaseQuality(item);
-            if (IsSmelly(item))
-            {
-                DecreaseQuality(item);
-            }
-        }
-
-        private static void HandleExpiredItems(Item item)
-        {
-            if (IsBackstagePass(item))
-            {
-                // "Backstage Passes" quality drops to 0 after the concert
-                item.Quality = 0;
-            }
-            else if (IsGoodWine(item))
+            if (IsGoodWine(item))
             {
                 IncreaseQuality(item);
+                if (isExpired) IncreaseQuality(item);
+                return;
             }
-            else
+
+            if (IsBackstagePass(item))
             {
-                // legendary items do not degrade in quality
-                if (IsLegendary(item))
-                {
-                    return;
-                }
-                // Normal items degrade in quality twice as fast after the sell-in date
-                DecreaseQuality(item);
-                // Smelly items degrade in quality twice as fast as normal items
-                if (IsSmelly(item))
-                {
-                    DecreaseQuality(item);
-                }
+                UpdateBackstagePass(item, isExpired);
+                return;
             }
+
+            int degradationAmount = IsSmelly(item) ? 2 : 1;
+
+            if (isExpired)
+                degradationAmount *= 2;
+
+            DecreaseQuality(item, degradationAmount);
+        }
+
+        private static void UpdateBackstagePass(Item item, bool isExpired)
+        {
+            if (isExpired)
+            {
+                item.Quality = 0;
+                return;
+            }
+
+            IncreaseQuality(item);
+
+            if (item.SellIn <= 10)
+                IncreaseQuality(item);
+
+            if (item.SellIn <= 5)
+                IncreaseQuality(item);
         }
 
         private static void UpdateSellIn(Item item)
         {
-            if (item.Name != WineNames.BDAWG_KEYCHAIN)
-            {
-                item.SellIn -= 1;
-            }
+            item.SellIn -= 1;
         }
 
         private static bool IsLegendary(Item item) => item.Name == WineNames.BDAWG_KEYCHAIN;
