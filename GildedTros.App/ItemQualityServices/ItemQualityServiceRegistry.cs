@@ -8,6 +8,11 @@ namespace GildedTros.App.ItemQualityServices
     // If an item name is not found in the map, it defaults to using the NormalItemService.
     // adding new item types and their corresponding services is as simple as adding a new entry to the Map dictionary.
     // no changes are needed in the main update loop or elsewhere in the codebase
+
+
+    //In the future we could change this to DI to make it more flexible and testable.
+    //Right now using DI would be overkill for this simple mapping.
+
     internal static class ItemQualityServiceRegistry
     {
         private static readonly Dictionary<string, IItemQualityService> Map = new()
