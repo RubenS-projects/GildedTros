@@ -1,5 +1,4 @@
 ﻿using GildedTros.App.Constants;
-using System.Collections.Generic;
 using Xunit;
 
 namespace GildedTros.App.UnitTests.WineQualityTests
@@ -13,11 +12,7 @@ namespace GildedTros.App.UnitTests.WineQualityTests
             Quality = quality
         };
 
-        private static void Update(Item item)
-        {
-            var app = new GildedTros(new List<Item> { item });
-            app.UpdateQuality();
-        }
+
 
         [Theory]
         [InlineData(20, 10, 11)] // +1
@@ -27,7 +22,7 @@ namespace GildedTros.App.UnitTests.WineQualityTests
         {
             var item = CreateBackstagePass(sellIn, quality);
 
-            Update(item);
+            GilderTrosUnitHelper.Update(item);
 
             Assert.Equal(expected, item.Quality);
         }
@@ -37,7 +32,7 @@ namespace GildedTros.App.UnitTests.WineQualityTests
         {
             var item = CreateBackstagePass(0, 20);
 
-            Update(item);
+            GilderTrosUnitHelper.Update(item);
 
             Assert.Equal(0, item.Quality);
         }
