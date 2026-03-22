@@ -20,6 +20,8 @@ namespace GildedTros.App
             }
         }
 
+        //this is the basic implementation of the update quality method, it checks the type of item and applies the appropriate logic to update its quality and sell-in date
+
         private static void UpdateItemQuality(Item item)
         {
             // Legendary items do not change in quality or sell-in date, since they never have to be sold
