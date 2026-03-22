@@ -22,18 +22,26 @@ namespace GildedTros.App
 
         private static void UpdateItemQuality(Item item)
         {
-            // Normal items decrease in quality
-            if (item.Name != WineNames.GOOD_WINE
-                && item.Name != WineNames.BACKSTAGE_PASSES_FOR_REFACTOR
-                && item.Name != WineNames.BACKSTAGE_PASSES_FOR_HAXX)
-            {
+            UpdateQualityDaily(item);
 
-                if (item.Quality > 0 && item.Name != WineNames.BDAWG_KEYCHAIN)
-                {
-                    item.Quality -= 1;
-                }
+            UpdateSellIn(item);
+
+            if (item.SellIn >= 0) return;
+            //start expiration Logic
+
+            HandleExpiredItems(item);
+        }
+
+        private static void UpdateQualityDaily(Item item)
+        {
+            // Normal items decrease in quality
+            if (IsLegendary(item))
+            {
+                // Legendary items do not change in quality
+                return;
             }
-            else
+
+            if (IsGoodWine(item) || IsBackstagePass(item))
             {
                 // "Good Wine" and "Backstage Passes" increase in quality
                 if (item.Quality < 50)
@@ -54,30 +62,40 @@ namespace GildedTros.App
                         }
                     }
                 }
+                return;
             }
-
-            UpdateSellIn(item);
-
-            if (item.SellIn >= 0) return;
-            //start expiration Logic
-
-            if (item.Name != WineNames.GOOD_WINE)
+            DecreaseQuality(item);
+            if (IsSmelly(item))
             {
-                if (IsBackstagePass(item))
-                {
-                    // "Backstage Passes" quality drops to 0 after the concert
-                    item.Quality = 0;
-                    return;
-                }
+                DecreaseQuality(item);
+            }
+        }
 
-                if (item.Name != WineNames.BDAWG_KEYCHAIN)
-                {
-                    DecreaseQuality(item);
-                }
+        private static void HandleExpiredItems(Item item)
+        {
+            if (IsBackstagePass(item))
+            {
+                // "Backstage Passes" quality drops to 0 after the concert
+                item.Quality = 0;
+            }
+            else if (IsGoodWine(item))
+            {
+                IncreaseQuality(item);
             }
             else
             {
-                IncreaseQuality(item);
+                // legendary items do not degrade in quality
+                if (IsLegendary(item))
+                {
+                    return;
+                }
+                // Normal items degrade in quality twice as fast after the sell-in date
+                DecreaseQuality(item);
+                // Smelly items degrade in quality twice as fast as normal items
+                if (IsSmelly(item))
+                {
+                    DecreaseQuality(item);
+                }
             }
         }
 
@@ -90,6 +108,8 @@ namespace GildedTros.App
         }
 
         private static bool IsLegendary(Item item) => item.Name == WineNames.BDAWG_KEYCHAIN;
+
+        private static bool IsSmelly(Item item) => item.Name is WineNames.DUPLICATE_CODE or WineNames.LONG_METHODS or WineNames.UGLY_VARIABLE_NAMES;
 
         private static bool IsGoodWine(Item item) => item.Name == WineNames.GOOD_WINE;
 
